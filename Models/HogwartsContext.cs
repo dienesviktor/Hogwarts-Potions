@@ -14,6 +14,9 @@ namespace HogwartsPotions.Models
         {
         }
 
+        public DbSet<Student> Students { get; set; }
+        public DbSet<Room> Rooms { get; set; }
+
         public async Task AddRoom(Room room)
         {
             throw new NotImplementedException();
