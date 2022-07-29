@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HogwartsPotions.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace HogwartsPotions.Models
 {
@@ -25,27 +26,30 @@ namespace HogwartsPotions.Models
 
         public async Task AddRoom(Room room)
         {
-            throw new NotImplementedException();
+            await Rooms.AddAsync(room);
         }
 
         public Task<Room> GetRoom(long roomId)
         {
-            throw new NotImplementedException();
+            Task<Room> room = Rooms.FindAsync(roomId).AsTask();
+            return room;
         }
 
-        public Task<List<Room>> GetAllRooms()
+        public async Task<List<Room>> GetAllRooms()
         {
-            throw new NotImplementedException();
+            Task<List<Room>> roomList = Rooms.ToListAsync();
+            return await roomList;
         }
 
-        public async Task UpdateRoom(Room room)
+        public async Task Update(long id, Room room)
         {
             throw new NotImplementedException();
         }
 
         public async Task DeleteRoom(long id)
         {
-            throw new NotImplementedException();
+            Room room = GetRoom(id).Result;
+            Rooms.Remove(room);
         }
 
         public Task<List<Room>> GetRoomsForRatOwners()
