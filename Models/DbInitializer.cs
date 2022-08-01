@@ -11,10 +11,9 @@ namespace HogwartsPotions.Models
         {
             context.Database.EnsureCreated();
 
-            // Look for any students.
-            if (context.Students.Any())
+            if (context.Students.Any() || context.Rooms.Any() || context.Potions.Any())
             {
-                return;   // DB has been seeded
+                return;
             }
 
             var rooms = new Room[]
@@ -22,12 +21,29 @@ namespace HogwartsPotions.Models
                 new Room{Capacity = 5, Residents = new HashSet<Student> {new Student{Name = "Harry Potter", HouseType = HouseType.Gryffindor, PetType = PetType.Owl}}},
                 new Room{Capacity = 5, Residents = new HashSet<Student> {new Student{Name = "Hermione Granger", HouseType = HouseType.Gryffindor, PetType = PetType.Rat}}}
             };
+
             foreach (Room r in rooms)
             {
                 context.Rooms.Add(r);
             }
-            context.SaveChanges();
 
+            var potions = new Potion[]
+            {
+                new Potion()
+                {
+                    BrewingStatus = BrewingStatus.Brew,
+                    Name = "potionke",
+                    Student = new Student(){Name = "Harry Potter", HouseType = HouseType.Gryffindor, PetType = PetType.Owl},
+                    Ingredients = {new Ingredient {Name = "apple"}}
+                }
+            };
+
+            foreach (Potion p in potions)
+            {
+                context.Potions.Add(p);
+            }
+
+            context.SaveChanges();
         }
     }
 }
