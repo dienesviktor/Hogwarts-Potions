@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HogwartsPotions.Models.Entities;
+using HogwartsPotions.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -29,10 +31,10 @@ namespace HogwartsPotions.Models
             await Rooms.AddAsync(room);
         }
 
-        public Task<Room> GetRoom(long roomId)
+        public async Task<Room> GetRoom(long roomId)
         {
             Task<Room> room = Rooms.FindAsync(roomId).AsTask();
-            return room;
+            return await room;
         }
 
         public async Task<List<Room>> GetAllRooms()
@@ -41,9 +43,10 @@ namespace HogwartsPotions.Models
             return await roomList;
         }
 
-        public async Task Update(long id, Room room)
+        public void UpdateRoom(Room room)
         {
-            throw new NotImplementedException();
+            Rooms.Update(room);
+            SaveChanges();
         }
 
         public async Task DeleteRoom(long id)
@@ -52,9 +55,19 @@ namespace HogwartsPotions.Models
             Rooms.Remove(room);
         }
 
-        public Task<List<Room>> GetRoomsForRatOwners()
+        public async Task<List<Room>> GetAvailableRooms()
         {
-            throw new NotImplementedException();
+            return await Rooms
+                        .Where(room => room.Residents.Count < room.Capacity)
+                        .ToListAsync();
+        }
+
+        public async Task<List<Room>> GetRoomsForRatOwners()
+        {
+            return await Rooms
+                .Include(room => room.Residents)
+                .Where(room => !room.Residents.Any(resident => resident.PetType == PetType.Cat || resident.PetType == PetType.Owl))
+                .ToListAsync();
         }
     }
 }

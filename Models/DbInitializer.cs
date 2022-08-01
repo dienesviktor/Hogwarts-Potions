@@ -20,7 +20,7 @@ namespace HogwartsPotions.Models
             var rooms = new Room[]
             {
                 new Room{Capacity = 5, Residents = new HashSet<Student> {new Student{Name = "Harry Potter", HouseType = HouseType.Gryffindor, PetType = PetType.Owl}}},
-                new Room{Capacity = 5, Residents = new HashSet<Student> {new Student{Name = "Hermione Granger", HouseType = HouseType.Gryffindor, PetType = PetType.Cat}}}
+                new Room{Capacity = 5, Residents = new HashSet<Student> {new Student{Name = "Hermione Granger", HouseType = HouseType.Gryffindor, PetType = PetType.Rat}}}
             };
             foreach (Room r in rooms)
             {
