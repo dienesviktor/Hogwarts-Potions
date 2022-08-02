@@ -4,22 +4,42 @@ using HogwartsPotions.Models;
 using HogwartsPotions.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HogwartsPotions.Controllers
+namespace HogwartsPotions.Controllers;
+
+[ApiController, Route("/potions")]
+public class PotionController : ControllerBase
 {
-    [ApiController, Route("/potions")]
-    public class PotionController : ControllerBase
+    private readonly HogwartsContext _context;
+
+    public PotionController(HogwartsContext context)
     {
-        private readonly HogwartsContext _context;
+        _context = context;
+    }
 
-        public PotionController(HogwartsContext context)
+    [HttpGet]
+    public async Task<List<Potion>> GetAllPotions()
+    {
+        return await _context.GetAllPotions();
+    }
+
+    [HttpPost("{studentName}")]
+    public async Task<Potion> AddPotion(string studentName, [FromBody] Potion potion)
+    {
+        Student student;
+
+        try
         {
-            _context = context;
+            student = await _context.GetStudent(studentName);
+            potion.Student = student;
+        }
+        catch
+        {
+            student = await _context.AddStudent(studentName);
+            potion.Student = student;
         }
 
-        [HttpGet]
-        public async Task<List<Potion>> GetAllPotions()
-        {
-            return await _context.GetAllPotions();
-        }
+        Potion newPotion = await _context.AddPotion(potion);
+        await _context.SaveChangesAsync();
+        return newPotion;
     }
 }
