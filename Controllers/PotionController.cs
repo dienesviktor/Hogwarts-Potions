@@ -55,4 +55,10 @@ public class PotionController : ControllerBase
     {
         return await _context.AddEmptyPotion(studentId);
     }
+
+    [HttpPut("{potionId}/add")]
+    public async Task<Potion> AddIngredient(long potionId, [FromBody] Ingredient ingredient)
+    {
+        return await _context.AddIngredient(potionId, ingredient);
+    }
 }
