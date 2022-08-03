@@ -61,4 +61,10 @@ public class PotionController : ControllerBase
     {
         return await _context.AddIngredient(potionId, ingredient);
     }
+
+    [HttpGet("{potionId}/help")]
+    public async Task<List<Recipe>> GetHelp(long potionId)
+    {
+        return await _context.GetHelp(potionId);
+    }
 }

@@ -97,6 +97,15 @@ public class HogwartsContext : DbContext
         return ingredient;
     }
 
+    public async Task<List<Recipe>> GetHelp(long id)
+    {
+        Potion potion = await GetPotion(id);
+
+        return Recipes
+            .AsEnumerable()
+            .Where(r => r.Ingredients.SequenceEqual(potion.Ingredients)).ToList();
+    }
+
     public async Task<Potion> AddPotion(Potion potion)
     {
         if (potion.Ingredients.Any())
