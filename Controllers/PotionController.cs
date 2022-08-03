@@ -49,4 +49,10 @@ public class PotionController : ControllerBase
         await _context.SaveChangesAsync();
         return newPotion;
     }
+
+    [HttpPost("brew/{studentId}")]
+    public async Task<Potion> BrewPotion(long studentId)
+    {
+        return await _context.AddEmptyPotion(studentId);
+    }
 }

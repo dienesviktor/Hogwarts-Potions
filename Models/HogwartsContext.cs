@@ -48,6 +48,29 @@ public class HogwartsContext : DbContext
         return student;
     }
 
+    public async Task<Potion> AddEmptyPotion(long id)
+    {
+        Student student;
+        try
+        {
+            student = await GetStudent(id);
+        }
+        catch
+        {
+            student = await AddStudent($"{id}'s name");
+        }
+
+        Potion potion = new Potion
+        {
+            BrewingStatus = BrewingStatus.Brew,
+            Student = student
+        };
+
+        await Potions.AddAsync(potion);
+        await SaveChangesAsync();
+        return potion;
+    }
+
     public async Task<Potion> AddPotion(Potion potion)
     {
         if (potion.Ingredients.Any())
@@ -106,6 +129,12 @@ public class HogwartsContext : DbContext
     public async Task<Student> GetStudent(string studentName)
     {
         Task<Student> student = Students.FirstAsync(student => student.Name == studentName);
+        return await student;
+    }
+
+    public async Task<Student> GetStudent(long id)
+    {
+        Task<Student> student = Students.FirstAsync(student => student.ID == id);
         return await student;
     }
 
