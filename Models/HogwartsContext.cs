@@ -33,43 +33,40 @@ public class HogwartsContext : DbContext
         modelBuilder.Entity<Potion>().ToTable("Potion");
     }
 
-    public async Task AddRoom(Room room)
-    {
-        await Rooms.AddAsync(room);
-    }
+    
+    //public async Task<Student> AddStudent(string name)
+    //{
+    //    HouseType houseType = (HouseType) _random.Next(0, 4);
+    //    PetType petType = (PetType) _random.Next(0, 3);
+    //    //Room room = await GetRoom(1);
+    //    Room room = new Room();
+    //    Student student = new Student {Name = name, HouseType = houseType, PetType = petType, Room = room};
+    //    await Students.AddAsync(student);
+    //    return student;
+    //}
 
-    public async Task<Student> AddStudent(string name)
-    {
-        HouseType houseType = (HouseType) _random.Next(0, 4);
-        PetType petType = (PetType) _random.Next(0, 3);
-        Room room = await GetRoom(1);
-        Student student = new Student {Name = name, HouseType = houseType, PetType = petType, Room = room};
-        await Students.AddAsync(student);
-        return student;
-    }
+    //public async Task<Potion> AddEmptyPotion(long id)
+    //{
+    //    Student student;
+    //    try
+    //    {
+    //        student = await GetStudent(id);
+    //    }
+    //    catch
+    //    {
+    //        student = await AddStudent($"{id}'s name");
+    //    }
 
-    public async Task<Potion> AddEmptyPotion(long id)
-    {
-        Student student;
-        try
-        {
-            student = await GetStudent(id);
-        }
-        catch
-        {
-            student = await AddStudent($"{id}'s name");
-        }
+    //    Potion potion = new Potion
+    //    {
+    //        BrewingStatus = BrewingStatus.Brew,
+    //        Student = student
+    //    };
 
-        Potion potion = new Potion
-        {
-            BrewingStatus = BrewingStatus.Brew,
-            Student = student
-        };
-
-        await Potions.AddAsync(potion);
-        await SaveChangesAsync();
-        return potion;
-    }
+    //    await Potions.AddAsync(potion);
+    //    await SaveChangesAsync();
+    //    return potion;
+    //}
 
     public async Task<Potion> AddIngredient(long id, Ingredient newIngredient)
     {
@@ -155,12 +152,6 @@ public class HogwartsContext : DbContext
         }
     }
 
-    public async Task<Room> GetRoom(long roomId)
-    {
-        Task<Room> room = Rooms.FindAsync(roomId).AsTask();
-        return await room;
-    }
-
     public async Task<Potion> GetPotion(long potionId)
     {
         Task<Potion> potion = Potions.FindAsync(potionId).AsTask();
@@ -169,29 +160,14 @@ public class HogwartsContext : DbContext
 
 
 
-    public async Task<Student> GetStudent(string studentName)
-    {
-        Task<Student> student = Students.FirstAsync(student => student.Name == studentName);
-        return await student;
-    }
-
     public async Task<Ingredient> GetIngredient(string ingredientName)
     {
         Task<Ingredient> ingredient = Ingredients.FirstAsync(ingredient => ingredient.Name == ingredientName);
         return await ingredient;
     }
 
-    public async Task<Student> GetStudent(long id)
-    {
-        Task<Student> student = Students.FirstAsync(student => student.ID == id);
-        return await student;
-    }
 
-    public async Task<List<Room>> GetAllRooms()
-    {
-        Task<List<Room>> roomList = Rooms.ToListAsync();
-        return await roomList;
-    }
+
 
     public async Task<List<Potion>> GetStudentPotions(long studentId)
     {
@@ -204,32 +180,5 @@ public class HogwartsContext : DbContext
     {
         Task<List<Potion>> potionList = Potions.ToListAsync();
         return await potionList;
-    }
-
-    public void UpdateRoom(Room room)
-    {
-        Rooms.Update(room);
-        SaveChanges();
-    }
-
-    public async Task DeleteRoom(long id)
-    {
-        Room room = GetRoom(id).Result;
-        Rooms.Remove(room);
-    }
-
-    public async Task<List<Room>> GetAvailableRooms()
-    {
-        return await Rooms
-            .Where(room => room.Residents.Count < room.Capacity)
-            .ToListAsync();
-    }
-
-    public async Task<List<Room>> GetRoomsForRatOwners()
-    {
-        return await Rooms
-            .Include(room => room.Residents)
-            .Where(room => !room.Residents.Any(resident => resident.PetType == PetType.Cat || resident.PetType == PetType.Owl))
-            .ToListAsync();
     }
 }

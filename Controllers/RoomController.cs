@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using HogwartsPotions.Models;
 using HogwartsPotions.Models.Entities;
+using HogwartsPotions.Models.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HogwartsPotions.Controllers;
@@ -9,55 +9,86 @@ namespace HogwartsPotions.Controllers;
 [ApiController, Route("/room")]
 public class RoomController : ControllerBase
 {
-    private readonly HogwartsContext _context;
+    private readonly IRoom _roomImplementation;
 
-    public RoomController(HogwartsContext context)
+    public RoomController(IRoom room)
     {
-        _context = context;
+        _roomImplementation = room;
+    }
+
+    [HttpGet("{roomId}")]
+    public async Task<ActionResult<Room>> GetRoom(long roomId)
+    {
+        Room room = await _roomImplementation.GetRoom(roomId);
+        if (room is null)
+        {
+            return NotFound($"Room #{roomId} doesn't exist!");
+        }
+        return Ok(room);
     }
 
     [HttpGet]
-    public async Task<List<Room>> GetAllRooms()
+    public async Task<ActionResult<List<Room>>> GetAllRooms()
     {
-        return await _context.GetAllRooms();
+        List<Room> rooms = await _roomImplementation.GetAllRooms();
+        if (rooms.Count == 0)
+        {
+            return NoContent();
+        }
+        return Ok(rooms);
     }
 
     [HttpPost]
-    public async Task AddRoom([FromBody] Room room)
+    public async Task<ActionResult<Room>> AddRoom([FromBody] Room room)
     {
-        await _context.AddRoom(room);
-        await _context.SaveChangesAsync();
+        await _roomImplementation.AddRoom(room);
+        return Created("AddRoom", room);
     }
 
-    [HttpGet("/room/{id}")]
-    public async Task<Room> GetRoomById(long id)
+    [HttpPut("{roomId}")]
+    public async Task<ActionResult> UpdateRoom(long roomId, [FromBody] Room room)
     {
-        return await _context.GetRoom(id);
+        Room newRoom = await _roomImplementation.GetRoom(roomId);
+        if (newRoom is null)
+        {
+            return NotFound($"Room #{roomId} doesn't exist!");
+        }
+        room.ID = newRoom.ID;
+        _roomImplementation.UpdateRoom(room);
+        return NoContent();
     }
 
-    [HttpPut("/room/{id}")]
-    public void UpdateRoomById(long id, [FromBody] Room updatedRoom)
+    [HttpDelete("{roomId}")]
+    public async Task<ActionResult> DeleteRoom(long roomId)
     {
-        updatedRoom.ID = id;
-        _context.UpdateRoom(updatedRoom);
+        Room room = await _roomImplementation.GetRoom(roomId);
+        if (room is null)
+        {
+            return NotFound($"Room #{roomId} doesn't exist!");
+        }
+        await _roomImplementation.DeleteRoom(roomId);
+        return NoContent();
     }
 
-    [HttpDelete("/room/{id}")]
-    public async Task DeleteRoomById(long id)
+    [HttpGet("available")]
+    public async Task<ActionResult<List<Room>>> GetAvailableRooms()
     {
-        await _context.DeleteRoom(id);
-        await _context.SaveChangesAsync();
+        List<Room> rooms = await _roomImplementation.GetAvailableRooms();
+        if (rooms.Count == 0)
+        {
+            return NoContent();
+        }
+        return Ok(rooms);
     }
 
-    [HttpGet("/room/available")]
-    public async Task<List<Room>> GetAvailableRooms()
+    [HttpGet("for-rat-owners")]
+    public async Task<ActionResult<List<Room>>> GetRoomsForRatOwners()
     {
-        return await _context.GetAvailableRooms();
-    }
-
-    [HttpGet("/room/rat-owners")]
-    public async Task<List<Room>> GetRoomsForRatOwners()
-    {
-        return await _context.GetRoomsForRatOwners();
+        List<Room> rooms = await _roomImplementation.GetRoomsForRatOwners();
+        if (rooms.Count == 0)
+        {
+            return NoContent();
+        }
+        return Ok(rooms);
     }
 }

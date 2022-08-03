@@ -29,32 +29,32 @@ public class PotionController : ControllerBase
     }
 
 
-    [HttpPost("{studentName}")]
-    public async Task<Potion> AddPotion(string studentName, [FromBody] Potion potion)
-    {
-        Student student;
+    //[HttpPost("{studentName}")]
+    //public async Task<Potion> AddPotion(string studentName, [FromBody] Potion potion)
+    //{
+    //    Student student;
 
-        try
-        {
-            student = await _context.GetStudent(studentName);
-            potion.Student = student;
-        }
-        catch
-        {
-            student = await _context.AddStudent(studentName);
-            potion.Student = student;
-        }
+    //    try
+    //    {
+    //        student = await _context.GetStudent(studentName);
+    //        potion.Student = student;
+    //    }
+    //    catch
+    //    {
+    //        student = await _context.AddStudent(studentName);
+    //        potion.Student = student;
+    //    }
 
-        Potion newPotion = await _context.AddPotion(potion);
-        await _context.SaveChangesAsync();
-        return newPotion;
-    }
+    //    Potion newPotion = await _context.AddPotion(potion);
+    //    await _context.SaveChangesAsync();
+    //    return newPotion;
+    //}
 
-    [HttpPost("brew/{studentId}")]
-    public async Task<Potion> BrewPotion(long studentId)
-    {
-        return await _context.AddEmptyPotion(studentId);
-    }
+    //[HttpPost("brew/{studentId}")]
+    //public async Task<Potion> BrewPotion(long studentId)
+    //{
+    //    return await _context.AddEmptyPotion(studentId);
+    //}
 
     [HttpPut("{potionId}/add")]
     public async Task<Potion> AddIngredient(long potionId, [FromBody] Ingredient ingredient)
