@@ -77,7 +77,10 @@ public class HogwartsContext : DbContext
                 else
                 {
                     newPotion.BrewingStatus = BrewingStatus.Discovery;
-                    var discoveredRecipe = new Recipe() { Student = newPotion.Student, Name = $"{newPotion.Student.Name}'s discovery", Ingredients = newPotion.Ingredients, };
+
+                    int counter = GetStudentPotions(newPotion.Student.ID).Result.Count + 1;
+
+                    var discoveredRecipe = new Recipe() { Student = newPotion.Student, Name = $"{newPotion.Student.Name}'s discovery #{counter}", Ingredients = newPotion.Ingredients, };
                     await AddAsync(discoveredRecipe);
                     newPotion.Recipe = discoveredRecipe;
                 }
@@ -110,6 +113,13 @@ public class HogwartsContext : DbContext
     {
         Task<List<Room>> roomList = Rooms.ToListAsync();
         return await roomList;
+    }
+
+    public async Task<List<Potion>> GetStudentPotions(long studentId)
+    {
+        return await Potions
+            .Where(potion => potion.Student.ID == studentId && potion.BrewingStatus == BrewingStatus.Discovery)
+            .ToListAsync();
     }
 
     public async Task<List<Potion>> GetAllPotions()
