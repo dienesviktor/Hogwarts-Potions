@@ -17,19 +17,17 @@ public class RoomImplementation : IRoom
         _context = context;
     }
 
-    public async Task<Room> GetRoom(long roomId)
+    public async Task<Room> GetRoom(long id)
     {
         return await _context.Rooms
             .Include(r => r.Residents)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.ID == roomId);
+            .FirstOrDefaultAsync(r => r.ID == id);
     }
 
     public async Task<List<Room>> GetAllRooms()
     {
         return await _context.Rooms
             .Include(r => r.Residents)
-            .AsNoTracking()
             .ToListAsync();
     }
 
@@ -61,7 +59,6 @@ public class RoomImplementation : IRoom
     {
         return await _context.Rooms
             .Include(r => r.Residents)
-            .AsNoTracking()
             .Where(room => room.Residents.Count < room.Capacity)
             .ToListAsync();
     }
@@ -70,7 +67,6 @@ public class RoomImplementation : IRoom
     {
         return await _context.Rooms
             .Include(r => r.Residents)
-            .AsNoTracking()
             .Where(room => !room.Residents.Any(resident => resident.PetType == PetType.Cat || resident.PetType == PetType.Owl))
             .ToListAsync();
     }

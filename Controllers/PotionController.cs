@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using HogwartsPotions.Models;
 using HogwartsPotions.Models.Entities;
+using HogwartsPotions.Models.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HogwartsPotions.Controllers;
@@ -9,62 +10,124 @@ namespace HogwartsPotions.Controllers;
 [ApiController, Route("/potions")]
 public class PotionController : ControllerBase
 {
-    private readonly HogwartsContext _context;
+    private readonly IStudent _studentImplementation;
+    private readonly IIngredient _ingredientImplementation;
+    private readonly IRecipe _recipeImplementation;
+    private readonly IPotion _potionImplementation;
 
-    public PotionController(HogwartsContext context)
+    public PotionController(IStudent student, IIngredient ingredient, IRecipe recipe, IPotion potion)
     {
-        _context = context;
+        _studentImplementation = student;
+        _ingredientImplementation = ingredient;
+        _recipeImplementation = recipe;
+        _potionImplementation = potion;
     }
 
     [HttpGet]
-    public async Task<List<Potion>> GetAllPotions()
+    public async Task<ActionResult<List<Potion>>> GetAllPotions()
     {
-        return await _context.GetAllPotions();
+        List<Potion> potions = await _potionImplementation.GetAllPotions();
+        if (potions.Count == 0)
+        {
+            return NoContent();
+        }
+        return Ok(potions);
+    }
+
+    [HttpPost("{studentId}")]
+    public async Task<ActionResult<Potion>> AddPotion(long studentId, [FromBody] Potion potion)
+    {
+        Student student = await _studentImplementation.GetStudent(studentId);
+
+        if (student is null)
+        {
+            return NotFound($"Student #{studentId} doesn't exist!");
+        }
+
+        potion.Student = student;
+        await _potionImplementation.AddPotion(potion);
+        return Created("AddPotion", potion);
     }
 
     [HttpGet("{studentId}")]
-    public async Task<List<Potion>> GetStudentPotions(long studentId)
+    public async Task<ActionResult<List<Potion>>> GetAllPotionsByStudent(long studentId)
     {
-        return await _context.GetStudentPotions(studentId);
+        List<Potion> potions = await _potionImplementation.GetAllPotionsByStudent(studentId);
+        if (potions.Count == 0)
+        {
+            return NoContent();
+        }
+        return Ok(potions);
     }
 
+    [HttpPost("brew/{studentId}")]
+    public async Task<ActionResult<Potion>> BrewPotion(long studentId)
+    {
+        Student student = await _studentImplementation.GetStudent(studentId);
 
-    //[HttpPost("{studentName}")]
-    //public async Task<Potion> AddPotion(string studentName, [FromBody] Potion potion)
-    //{
-    //    Student student;
+        if (student is null)
+        {
+            return NotFound($"Student #{studentId} doesn't exist!");
+        }
 
-    //    try
-    //    {
-    //        student = await _context.GetStudent(studentName);
-    //        potion.Student = student;
-    //    }
-    //    catch
-    //    {
-    //        student = await _context.AddStudent(studentName);
-    //        potion.Student = student;
-    //    }
-
-    //    Potion newPotion = await _context.AddPotion(potion);
-    //    await _context.SaveChangesAsync();
-    //    return newPotion;
-    //}
-
-    //[HttpPost("brew/{studentId}")]
-    //public async Task<Potion> BrewPotion(long studentId)
-    //{
-    //    return await _context.AddEmptyPotion(studentId);
-    //}
+        Potion potion = await _potionImplementation.AddEmptyPotion(student);
+        return Created("BrewPotion", potion);
+    }
 
     [HttpPut("{potionId}/add")]
-    public async Task<Potion> AddIngredient(long potionId, [FromBody] Ingredient ingredient)
+    public async Task<ActionResult<Potion>> AddIngredientToPotion(long potionId, [FromBody] Ingredient ingredient)
     {
-        return await _context.AddIngredient(potionId, ingredient);
+        Potion potion = await _potionImplementation.GetPotion(potionId);
+
+        if (potion is null)
+        {
+            return NotFound($"Potion #{potionId} doesn't exist!");
+        }
+
+        if (potion.Ingredients.Count >= 5)
+        {
+            return StatusCode(500, $"Potion #{potionId} has too many ingredient.");
+        }
+
+        List<Ingredient> ingredients = await _ingredientImplementation.GetAllIngredients();
+
+        foreach (Ingredient ingrdnt in ingredients)
+        {
+            if (ingrdnt.Name == ingredient.Name)
+            {
+                await _potionImplementation.AddIngredientToPotion(potionId, ingredient);
+
+                if (potion.Ingredients.Count >= 5)
+                {
+                    await _recipeImplementation.ChangePotionStatus(potion);
+                }
+
+                return Ok(potion);
+            }
+        }
+        
+        await _ingredientImplementation.AddIngredient(ingredient);
+
+        await _potionImplementation.AddIngredientToPotion(potionId, ingredient);
+
+        if (potion.Ingredients.Count >= 5)
+        {
+            await _recipeImplementation.ChangePotionStatus(potion);
+        }
+
+        return Ok(potion);
     }
 
     [HttpGet("{potionId}/help")]
-    public async Task<List<Recipe>> GetHelp(long potionId)
+    public async Task<ActionResult<List<Recipe>>> GetAllRecipesWithPotionIngredients(long potionId)
     {
-        return await _context.GetHelp(potionId);
+        List<Recipe> recipies = await _recipeImplementation.GetAllRecipesWithPotionIngredients(potionId);
+
+        if (recipies.Count == 0)
+        {
+            return NoContent();
+        }
+
+        return Ok(recipies);
     }
 }

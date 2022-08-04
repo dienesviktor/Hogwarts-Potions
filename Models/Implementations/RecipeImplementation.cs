@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HogwartsPotions.Models.Entities;
+using HogwartsPotions.Models.Enums;
 using HogwartsPotions.Models.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace HogwartsPotions.Models.Implementations;
 
@@ -14,33 +17,66 @@ public class RecipeImplementation : IRecipe
         _context = context;
     }
 
-    public Task<Recipe> GetRecipe(long id)
+    public async Task<Recipe> GetRecipe(long id)
     {
-        throw new System.NotImplementedException();
+        return await _context.Recipes
+            .FirstOrDefaultAsync(r => r.ID == id);
     }
 
-    public Task<List<Recipe>> GetAllRecipes()
+    public async Task<List<Recipe>> GetAllRecipes()
     {
-        throw new System.NotImplementedException();
+        return await _context.Recipes
+            .Include(r => r.Student)
+            .Include(r => r.Ingredients)
+            .ToListAsync();
     }
 
-    public Task AddRecipe(Recipe recipe)
+    public async Task AddRecipe(Recipe recipe)
     {
-        throw new System.NotImplementedException();
+        await _context.Recipes.AddAsync(recipe);
+        await _context.SaveChangesAsync();
     }
 
-    public Task DeleteRecipe(long id)
+    public async Task DeleteRecipe(long id)
     {
-        throw new System.NotImplementedException();
+        Recipe recipe = GetRecipe(id).Result;
+        _context.Recipes.Remove(recipe);
+        await _context.SaveChangesAsync();
     }
 
-    public Task<List<Recipe>> GetAllRecipesWithPotionIngredients(long potionId)
+    public async Task<List<Recipe>> GetAllRecipesWithPotionIngredients(long potionId)
     {
-        throw new System.NotImplementedException();
+        Potion potion = await _context.Potions
+            .Include(p => p.Ingredients)
+            .FirstAsync(p => p.ID == potionId);
+
+        return await _context.Recipes
+            .Include(r => r.Student)
+            .Include(r => r.Ingredients)
+            .Where(r => r.Ingredients.Any(i => potion.Ingredients.Contains(i)))
+            .ToListAsync();
     }
 
-    public Task ChangePotionStatus(Potion potion)
+    public async Task ChangePotionStatus(Potion potion)
     {
-        throw new System.NotImplementedException();
+        var recipes = await GetAllRecipes();
+
+        foreach (var recipe in recipes)
+        {
+            if (recipe.Ingredients.SequenceEqual(potion.Ingredients))
+            {
+                potion.BrewingStatus = BrewingStatus.Replica;
+                potion.Recipe = recipe;
+                await _context.SaveChangesAsync();
+            }
+        }
+        potion.BrewingStatus = BrewingStatus.Discovery;
+
+        int studentRecipies = _context.Recipes.Count(r => r.Student.ID == potion.Student.ID) + 1;
+
+        var newRecipe = new Recipe() { Student = potion.Student, Ingredients = potion.Ingredients, Name = $"{potion.Student.Name}'s discovery #{studentRecipies}" };
+        await AddRecipe(newRecipe);
+        potion.Recipe = newRecipe;
+        await _context.SaveChangesAsync();
     }
 }

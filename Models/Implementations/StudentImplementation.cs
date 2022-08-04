@@ -14,11 +14,11 @@ public class StudentImplementation : IStudent
     {
         _context = context;
     }
-    public async Task<Student> GetStudent(long id)
+    public async Task<Student> GetStudent(long studentId)
     {
         return await _context.Students
             .Include(s => s.Room)
-            .FirstAsync(student => student.ID == id);
+            .FirstOrDefaultAsync(student => student.ID == studentId);
     }
 
     public async Task<List<Student>> GetAllStudents()

@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HogwartsPotions.Models.Entities;
 using HogwartsPotions.Models.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace HogwartsPotions.Models.Implementations;
 
@@ -13,23 +15,28 @@ public class IngredientImplementation : IIngredient
     {
         _context = context;
     }
-    public Task<Ingredient> GetIngredient(long id)
+    public async Task<Ingredient> GetIngredient(long id)
     {
-        throw new System.NotImplementedException();
+        return await _context.Ingredients
+            .FirstOrDefaultAsync(i => i.ID == id);
     }
 
-    public Task<List<Ingredient>> GetAllIngredients()
+    public async Task<List<Ingredient>> GetAllIngredients()
     {
-        throw new System.NotImplementedException();
+        return await _context.Ingredients
+            .ToListAsync();
     }
 
-    public Task AddIngredient(Ingredient ingredient)
+    public async Task AddIngredient(Ingredient ingredient)
     {
-        throw new System.NotImplementedException();
+        await _context.Ingredients.AddAsync(ingredient);
+        await _context.SaveChangesAsync();
     }
 
-    public Task DeleteIngredient(long id)
+    public async Task DeleteIngredient(long id)
     {
-        throw new System.NotImplementedException();
+        Ingredient ingredient = GetIngredient(id).Result;
+        _context.Ingredients.Remove(ingredient);
+        await _context.SaveChangesAsync();
     }
 }
