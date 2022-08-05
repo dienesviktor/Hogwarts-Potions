@@ -95,7 +95,7 @@ public class PotionController : ControllerBase
         {
             if (ingrdnt.Name == ingredient.Name)
             {
-                await _potionImplementation.AddIngredientToPotion(potionId, ingredient);
+                await _potionImplementation.AddIngredientToPotion(potionId, ingrdnt);
 
                 if (potion.Ingredients.Count >= 5)
                 {
@@ -105,9 +105,8 @@ public class PotionController : ControllerBase
                 return Ok(potion);
             }
         }
-        
-        await _ingredientImplementation.AddIngredient(ingredient);
 
+        await _ingredientImplementation.AddIngredient(ingredient);
         await _potionImplementation.AddIngredientToPotion(potionId, ingredient);
 
         if (potion.Ingredients.Count >= 5)
